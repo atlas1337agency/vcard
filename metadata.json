@@ -1,6 +1,6 @@
 {
-  "name": "Nexa 1337 Link Tree",
-  "description": "A virtual card and link tree for Nexa 1337.",
+  "name": "ATLAS 1337 Agency",
+  "description": "Ambition • Technology • Learn • Automate • Scale. Official virtual card and links for ATLAS 1337 Agency.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

@@ -1,22 +1,22 @@
 {
-  "name": "Vcard",
-  "short_name": "Vcard",
-  "description": "Quick access to N E X A 1337",
+  "name": "ATLAS 1337 Agency",
+  "short_name": "ATLAS 1337",
+  "description": "Quick access to ATLAS 1337 Agency",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#08080c",
   "theme_color": "#08080c",
   "icons": [
     {
-      "src": "/logo.png",
+      "src": "/images/logo.png",
       "sizes": "192x192 512x512",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/favicon.svg",
+      "src": "/images/favicon.png",
       "sizes": "any",
-      "type": "image/svg+xml"
+      "type": "image/png"
     }
   ]
 }
