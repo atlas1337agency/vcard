@@ -1,12 +1,17 @@
 import {
   Brain,
+  Check,
+  Copy,
   Download,
   GraduationCap,
   Instagram,
   Linkedin,
   Info,
   MousePointerClick,
+  PlusSquare,
   QrCode,
+  Share,
+  Smartphone,
   X,
   Youtube,
 } from 'lucide-react';
@@ -79,54 +84,61 @@ const SOCIAL_LINKS = [
 
 export default function App() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [showShortcutModal, setShowShortcutModal] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [installMessage, setInstallMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    const hasDismissed = localStorage.getItem('atlas_app_prompt_dismissed_v1');
-    
     // Listen for the native PWA install event (Android/Chrome)
     const handler = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      if (!hasDismissed) {
-        setShowInstallPrompt(true);
-      }
     };
     window.addEventListener('beforeinstallprompt', handler);
 
-    // Fallback: Show it anyway after a short delay if not dismissed (e.g. for iOS Safari)
-    const timer = setTimeout(() => {
-      if (!hasDismissed) {
-        setShowInstallPrompt(true);
+    // Escape key listener to close modal
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowShortcutModal(false);
       }
-    }, 2500);
+    };
+    window.addEventListener('keydown', handleKeyDown);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handler);
-      clearTimeout(timer);
+      window.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
 
   const handleInstall = async () => {
     if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        console.log('User accepted the install prompt');
+      try {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          console.log('User accepted the install prompt');
+        }
+        setDeferredPrompt(null);
+        setShowShortcutModal(false);
+      } catch (err) {
+        console.error('Error during prompt:', err);
       }
-      setDeferredPrompt(null);
-      setShowInstallPrompt(false);
     } else {
       setInstallMessage("Tap browser share & select 'Add to Home Screen'");
       setTimeout(() => setInstallMessage(null), 5000);
     }
   };
 
-  const handleDismiss = () => {
-    setShowInstallPrompt(false);
-    setInstallMessage(null);
-    localStorage.setItem('atlas_app_prompt_dismissed_v1', 'true');
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      // Fallback
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    }
   };
 
   return (
@@ -146,7 +158,7 @@ export default function App() {
         }}
       />
 
-      <main className="w-full max-w-[420px] relative z-10 px-6 py-12 flex flex-col items-center">
+      <main className="w-full max-w-[420px] relative z-10 px-6 pt-12 pb-28 md:pb-12 flex flex-col items-center">
         {/* Profile / Header */}
         <div className="flex flex-col items-center mb-8 text-center">
           <div className="relative w-32 h-32 mb-6 flex items-center justify-center">
@@ -290,41 +302,153 @@ export default function App() {
         </div>
       </main>
 
-      {/* Add to Home Screen Prompt */}
-      {showInstallPrompt && (
-        <div className="fixed bottom-6 left-0 right-0 px-4 z-[9999] flex justify-center pointer-events-none">
-          <div className="w-full max-w-[400px] bg-white/[0.05] backdrop-blur-3xl border border-white/10 rounded-2xl p-4 shadow-2xl flex items-center justify-between gap-4 animate-slide-up pointer-events-auto">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-fuchsia-500 p-[2px] shrink-0 shadow-lg shadow-fuchsia-500/20">
-                <div className="w-full h-full bg-[#0d0d12] rounded-[10px] flex items-center justify-center overflow-hidden">
-                  <img src="/images/favicon.png" alt="ATLAS 1337" className="w-6 h-6 object-contain" />
-                </div>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-white text-[13px] font-bold">Add to Home Screen</span>
-                <span className="text-slate-400 text-[11px] font-medium mt-0.5">
-                  {installMessage || 'Quick access to ATLAS 1337 Agency'}
-                </span>
+      {/* Mobile Bottom Navbar (visible only on mobile mode) */}
+      <nav 
+        aria-label="Mobile Navigation"
+        className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-[#08080d]/85 backdrop-blur-2xl border-t border-white/10 px-4 py-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center justify-center shadow-[0_-10px_35px_rgba(0,0,0,0.85)]"
+      >
+        {/* Center logo button */}
+        <button
+          type="button"
+          onClick={() => setShowShortcutModal(true)}
+          aria-label="Download Shortcut"
+          title="Download Shortcut"
+          className="group relative flex items-center justify-center p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400 rounded-2xl active:scale-90 transition-transform duration-200 cursor-pointer"
+        >
+          {/* Ambient gradient glow behind center button */}
+          <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-indigo-500/40 via-purple-500/40 to-fuchsia-500/40 blur-md opacity-80 group-hover:opacity-100 group-hover:blur-lg transition-all" />
+
+          {/* Button box container */}
+          <div className="relative w-12 h-12 rounded-2xl bg-[#0c0c14] border border-white/20 p-2 flex items-center justify-center shadow-lg shadow-purple-500/25 group-hover:border-fuchsia-500/50 group-hover:bg-[#11111d] transition-colors">
+            <img
+              src="/images/favicon.png"
+              alt="ATLAS 1337"
+              className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(192,132,252,0.6)] group-hover:scale-110 transition-transform duration-200"
+            />
+          </div>
+        </button>
+      </nav>
+
+      {/* Download Shortcut Popup Modal */}
+      {showShortcutModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-opacity duration-300"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowShortcutModal(false);
+          }}
+        >
+          <div className="relative w-full max-w-[390px] bg-[#0c0c14]/95 border border-white/15 rounded-3xl p-6 shadow-2xl backdrop-blur-2xl flex flex-col items-center text-center animate-slide-up overflow-hidden">
+            {/* Ambient decorative glows */}
+            <div className="absolute -top-16 -left-16 w-44 h-44 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-16 -right-16 w-44 h-44 bg-fuchsia-600/20 rounded-full blur-3xl pointer-events-none" />
+
+            {/* Close Button */}
+            <button
+              type="button"
+              onClick={() => setShowShortcutModal(false)}
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-full bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+              aria-label="Close"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Glowing App Icon */}
+            <div className="relative mb-3 mt-1">
+              <div className="absolute -inset-2 bg-gradient-to-r from-indigo-500 to-fuchsia-500 rounded-2xl blur-md opacity-50 animate-pulse" />
+              <div className="relative w-16 h-16 rounded-2xl bg-[#12121e] border border-white/20 p-2.5 flex items-center justify-center shadow-xl shadow-fuchsia-500/20">
+                <img
+                  src="/images/favicon.png"
+                  alt="ATLAS 1337 Agency"
+                  className="w-full h-full object-contain drop-shadow-[0_0_12px_rgba(217,70,239,0.6)]"
+                />
               </div>
             </div>
-            <div className="flex items-center gap-3 shrink-0">
-              <button 
+
+            {/* Modal Title & Info */}
+            <h3 className="text-xl font-bold text-white tracking-tight">Download Shortcut</h3>
+            <p className="text-xs text-slate-400 mt-1.5 max-w-[300px] leading-relaxed">
+              Add ATLAS 1337 Agency to your phone&apos;s home screen for fast 1-tap access and a full-screen app experience.
+            </p>
+
+            {/* Direct PWA Install Button (if browser supports beforeinstallprompt) */}
+            {deferredPrompt && (
+              <button
+                type="button"
                 onClick={handleInstall}
-                className="px-4 py-2 bg-white text-black text-xs font-bold rounded-full hover:bg-slate-200 transition-colors"
+                className="w-full mt-5 py-3 px-5 bg-gradient-to-r from-indigo-500 via-purple-500 to-fuchsia-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-fuchsia-500/25 hover:shadow-fuchsia-500/40 active:scale-[0.98] transition flex items-center justify-center gap-2 cursor-pointer"
               >
-                Add
+                <Download className="w-4 h-4" />
+                <span>Install Shortcut Now</span>
               </button>
-              <button 
-                onClick={handleDismiss}
-                className="p-1 text-slate-400 hover:text-white transition-colors"
-                aria-label="Close"
+            )}
+
+            {/* Step-by-step Instructions for Mobile */}
+            <div className="w-full mt-4 bg-white/[0.04] border border-white/10 rounded-2xl p-4 text-left space-y-3">
+              <div className="flex items-center gap-2 text-slate-300 font-semibold text-[11px] uppercase tracking-wider">
+                <Smartphone className="w-3.5 h-3.5 text-fuchsia-400" />
+                <span>Quick Mobile Setup</span>
+              </div>
+
+              <div className="space-y-2 text-slate-300 text-xs">
+                <div className="flex items-start gap-2.5">
+                  <span className="w-4 h-4 rounded-full bg-indigo-500/20 text-indigo-400 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                    1
+                  </span>
+                  <div className="leading-snug">
+                    Tap the browser <strong className="text-white">Share</strong> button <Share className="inline w-3.5 h-3.5 text-blue-400 mx-0.5 -mt-0.5" /> or menu <strong className="text-white">⋮</strong>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-2.5">
+                  <span className="w-4 h-4 rounded-full bg-fuchsia-500/20 text-fuchsia-400 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                    2
+                  </span>
+                  <div className="leading-snug">
+                    Select <strong className="text-white">Add to Home Screen</strong> <PlusSquare className="inline w-3.5 h-3.5 text-fuchsia-400 mx-0.5 -mt-0.5" /> or <strong className="text-white">Install App</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Status Message if any */}
+            {installMessage && (
+              <p className="mt-3 text-xs text-amber-300 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-lg">
+                {installMessage}
+              </p>
+            )}
+
+            {/* Copy Link Utility Button */}
+            <div className="w-full flex items-center gap-2 mt-4">
+              <button
+                type="button"
+                onClick={handleCopyLink}
+                className="flex-1 py-2.5 px-3 bg-white/[0.05] hover:bg-white/[0.08] border border-white/10 text-slate-300 hover:text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                {copied ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-emerald-400 font-bold">Link Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Copy Link</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowShortcutModal(false)}
+                className="py-2.5 px-5 bg-white text-black hover:bg-slate-200 rounded-xl text-xs font-bold transition-all active:scale-[0.98] cursor-pointer"
+              >
+                Got It
               </button>
             </div>
           </div>
         </div>
       )}
+
       {/* Desktop QR Code */}
       <div className="hidden lg:flex fixed bottom-8 right-8 flex-col items-center gap-3 z-40 animate-slide-up">
         <span className="text-white text-[13px] font-bold tracking-wide">View on mobile</span>
