@@ -302,10 +302,27 @@ export default function App() {
         </div>
       </main>
 
+      {/* Tablet & Laptop Non-intrusive Shortcut Button (Top-Right Corner, away from center buttons) */}
+      <button
+        type="button"
+        onClick={() => setShowShortcutModal(true)}
+        aria-label="Download Shortcut"
+        className="hidden md:flex fixed top-5 right-5 z-30 items-center gap-2.5 px-4 py-2 bg-[#0d0d15]/85 hover:bg-[#151522] border border-white/15 hover:border-fuchsia-500/40 rounded-full shadow-lg backdrop-blur-xl transition-all duration-200 cursor-pointer group hover:scale-105"
+      >
+        <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-indigo-500 to-fuchsia-500 p-[1.5px] flex items-center justify-center shrink-0">
+          <div className="w-full h-full bg-[#0a0a10] rounded-full flex items-center justify-center overflow-hidden">
+            <img src="/images/favicon.png" alt="ATLAS 1337" className="w-4 h-4 object-contain" />
+          </div>
+        </div>
+        <span className="text-xs font-semibold text-slate-200 group-hover:text-white transition-colors">
+          Download Shortcut
+        </span>
+      </button>
+
       {/* Mobile Bottom Navbar (visible only on mobile mode) */}
       <nav 
         aria-label="Mobile Navigation"
-        className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-[#08080d]/85 backdrop-blur-2xl border-t border-white/10 px-4 py-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center justify-center shadow-[0_-10px_35px_rgba(0,0,0,0.85)]"
+        className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-[#08080d]/90 backdrop-blur-2xl border-t border-white/10 px-4 py-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center justify-center shadow-[0_-10px_35px_rgba(0,0,0,0.85)]"
       >
         {/* Center logo button */}
         <button
@@ -329,18 +346,18 @@ export default function App() {
         </button>
       </nav>
 
-      {/* Download Shortcut Popup Modal */}
+      {/* Download Shortcut Popup Modal (Centered, clear backdrop so buttons behind are dimmed and modal is crystal clear) */}
       {showShortcutModal && (
         <div 
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-opacity duration-300"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl transition-opacity duration-300"
           onClick={(e) => {
             if (e.target === e.currentTarget) setShowShortcutModal(false);
           }}
         >
-          <div className="relative w-full max-w-[390px] bg-[#0c0c14]/95 border border-white/15 rounded-3xl p-6 shadow-2xl backdrop-blur-2xl flex flex-col items-center text-center animate-slide-up overflow-hidden">
+          <div className="relative w-full max-w-[400px] bg-[#0d0d17] border border-white/20 rounded-3xl p-6 sm:p-7 shadow-2xl flex flex-col items-center text-center animate-slide-up overflow-hidden">
             {/* Ambient decorative glows */}
-            <div className="absolute -top-16 -left-16 w-44 h-44 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-16 -right-16 w-44 h-44 bg-fuchsia-600/20 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -top-16 -left-16 w-44 h-44 bg-indigo-600/25 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-16 -right-16 w-44 h-44 bg-fuchsia-600/25 rounded-full blur-3xl pointer-events-none" />
 
             {/* Close Button */}
             <button
@@ -366,8 +383,8 @@ export default function App() {
 
             {/* Modal Title & Info */}
             <h3 className="text-xl font-bold text-white tracking-tight">Download Shortcut</h3>
-            <p className="text-xs text-slate-400 mt-1.5 max-w-[300px] leading-relaxed">
-              Add ATLAS 1337 Agency to your phone&apos;s home screen for fast 1-tap access and a full-screen app experience.
+            <p className="text-xs text-slate-300 mt-1.5 max-w-[310px] leading-relaxed">
+              Add ATLAS 1337 Agency to your device&apos;s home screen or desktop for fast 1-tap access.
             </p>
 
             {/* Direct PWA Install Button (if browser supports beforeinstallprompt) */}
@@ -382,11 +399,11 @@ export default function App() {
               </button>
             )}
 
-            {/* Step-by-step Instructions for Mobile */}
-            <div className="w-full mt-4 bg-white/[0.04] border border-white/10 rounded-2xl p-4 text-left space-y-3">
-              <div className="flex items-center gap-2 text-slate-300 font-semibold text-[11px] uppercase tracking-wider">
+            {/* Step-by-step Instructions for Mobile / Tablet / Desktop */}
+            <div className="w-full mt-4 bg-white/[0.05] border border-white/10 rounded-2xl p-4 text-left space-y-3">
+              <div className="flex items-center gap-2 text-slate-200 font-semibold text-[11px] uppercase tracking-wider">
                 <Smartphone className="w-3.5 h-3.5 text-fuchsia-400" />
-                <span>Quick Mobile Setup</span>
+                <span>Quick Setup Guide</span>
               </div>
 
               <div className="space-y-2 text-slate-300 text-xs">
@@ -395,7 +412,7 @@ export default function App() {
                     1
                   </span>
                   <div className="leading-snug">
-                    Tap the browser <strong className="text-white">Share</strong> button <Share className="inline w-3.5 h-3.5 text-blue-400 mx-0.5 -mt-0.5" /> or menu <strong className="text-white">⋮</strong>
+                    On phone/tablet, tap browser <strong className="text-white">Share</strong> <Share className="inline w-3.5 h-3.5 text-blue-400 mx-0.5 -mt-0.5" /> or menu <strong className="text-white">⋮</strong>
                   </div>
                 </div>
 
@@ -422,7 +439,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={handleCopyLink}
-                className="flex-1 py-2.5 px-3 bg-white/[0.05] hover:bg-white/[0.08] border border-white/10 text-slate-300 hover:text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
+                className="flex-1 py-2.5 px-3 bg-white/[0.08] hover:bg-white/[0.12] border border-white/15 text-slate-200 hover:text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
               >
                 {copied ? (
                   <>
@@ -440,7 +457,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setShowShortcutModal(false)}
-                className="py-2.5 px-5 bg-white text-black hover:bg-slate-200 rounded-xl text-xs font-bold transition-all active:scale-[0.98] cursor-pointer"
+                className="py-2.5 px-5 bg-white text-black hover:bg-slate-200 rounded-xl text-xs font-bold transition-all active:scale-[0.98] cursor-pointer shadow-md"
               >
                 Got It
               </button>

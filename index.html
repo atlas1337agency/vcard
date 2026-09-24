@@ -2,21 +2,108 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <link rel="icon" type="image/png" href="/images/favicon.png" />
+    <link rel="shortcut icon" type="image/png" href="/images/favicon.png" />
+    <link rel="apple-touch-icon" href="/images/favicon.png" />
     <link rel="manifest" href="/manifest.json" />
-    <link rel="apple-touch-icon" href="/images/logo.png" />
+    
     <title>ATLAS 1337 Agency</title>
     <meta name="description" content="Ambition • Technology • Learn • Automate • Scale. Official virtual card and links for ATLAS 1337 Agency." />
     <meta name="keywords" content="ATLAS 1337 Agency, ATLAS 1337, Skilliq, AI Automation, Digital Growth, Free Tools, Web Development" />
+    <meta name="theme-color" content="#08080c" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="ATLAS 1337" />
+
     <meta property="og:title" content="ATLAS 1337 Agency" />
     <meta property="og:description" content="Ambition • Technology • Learn • Automate • Scale" />
-    <meta property="og:image" content="/images/logo.png" />
+    <meta property="og:image" content="/images/favicon.png" />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
+    
+    <style>
+      /* Fallback pre-react splash screen styles */
+      #initial-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        background-color: #08080c;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      }
+      .splash-ambient-bg {
+        position: absolute;
+        width: 320px;
+        height: 320px;
+        background: radial-gradient(circle, rgba(147, 51, 234, 0.25) 0%, rgba(99, 102, 241, 0.15) 50%, transparent 70%);
+        filter: blur(60px);
+        animation: pulse-glow 2s ease-in-out infinite alternate;
+      }
+      .splash-logo-container {
+        position: relative;
+        width: 240px;
+        max-width: 80vw;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .splash-logo-img {
+        width: 100%;
+        height: auto;
+        max-height: 120px;
+        object-fit: contain;
+        filter: drop-shadow(0 0 25px rgba(168, 85, 247, 0.4));
+      }
+      .splash-bar-track {
+        width: 140px;
+        height: 3px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 999px;
+        margin-top: 28px;
+        overflow: hidden;
+        position: relative;
+      }
+      .splash-bar-fill {
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 50%;
+        background: linear-gradient(90deg, #6366f1, #d946ef);
+        border-radius: 999px;
+        animation: loader-slide 1.2s ease-in-out infinite;
+      }
+      @keyframes pulse-glow {
+        0% { transform: scale(0.9); opacity: 0.6; }
+        100% { transform: scale(1.15); opacity: 1; }
+      }
+      @keyframes loader-slide {
+        0% { left: -50%; width: 30%; }
+        50% { width: 60%; }
+        100% { left: 100%; width: 30%; }
+      }
+    </style>
   </head>
-  <body>
-    <div id="root"></div>
+  <body class="bg-[#08080c] text-white">
+    <div id="root">
+      <!-- High-performance inline splash screen before React hydration -->
+      <div id="initial-splash">
+        <div class="splash-ambient-bg"></div>
+        <div class="splash-logo-container">
+          <img src="/images/logo_dark.png" alt="ATLAS 1337 Agency" class="splash-logo-img" />
+          <div class="splash-bar-track">
+            <div class="splash-bar-fill"></div>
+          </div>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
