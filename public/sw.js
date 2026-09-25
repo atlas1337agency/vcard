@@ -1,5 +1,5 @@
 // Service Worker for ATLAS 1337 Agency PWA
-const CACHE_NAME = 'atlas-1337-v1';
+const CACHE_NAME = 'atlas-1337-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -8,7 +8,9 @@ const ASSETS_TO_CACHE = [
   '/images/logo_dark.png',
   '/images/logo.png',
   '/images/logo_light.png',
-  '/code.png'
+  '/code.png',
+  '/favicon.ico',
+  '/apple-touch-icon.png'
 ];
 
 self.addEventListener('install', (event) => {

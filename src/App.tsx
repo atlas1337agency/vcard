@@ -1,12 +1,15 @@
+import React, { useState, useEffect } from 'react';
 import {
   Brain,
   Check,
   Copy,
   Download,
   GraduationCap,
-  Instagram,
-  Linkedin,
   Info,
+  Instagram,
+  Laptop,
+  Linkedin,
+  Monitor,
   MousePointerClick,
   PlusSquare,
   QrCode,
@@ -15,10 +18,9 @@ import {
   X,
   Youtube,
 } from 'lucide-react';
-import React, { useState, useEffect } from 'react';
 import { DiscordIcon, TelegramIcon, TikTokIcon, WhatsAppIcon, KickIcon, RedditIcon } from './components/icons';
-
 import CustomCursor from './components/CustomCursor';
+import SplashScreen from './components/SplashScreen';
 
 // Space Links
 const SPACE_LINKS = [
@@ -83,10 +85,18 @@ const SOCIAL_LINKS = [
 ];
 
 export default function App() {
+  const [showLoader, setShowLoader] = useState(true);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showShortcutModal, setShowShortcutModal] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [downloaded, setDownloaded] = useState(false);
   const [installMessage, setInstallMessage] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'mobile' | 'desktop'>(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      return 'mobile';
+    }
+    return 'desktop';
+  });
 
   useEffect(() => {
     // Listen for the native PWA install event (Android/Chrome)
@@ -110,23 +120,61 @@ export default function App() {
     };
   }, []);
 
-  const handleInstall = async () => {
+  // Download direct .url Internet Shortcut file (Works on Windows, macOS, Linux, etc.)
+  const handleDownloadShortcutFile = () => {
+    try {
+      const origin = window.location.origin;
+      const url = window.location.href;
+      const iconUrl = `${origin}/images/favicon.png`;
+      const urlContent = `[InternetShortcut]\r\nURL=${url}\r\nIconIndex=0\r\nIconFile=${iconUrl}\r\nHotKey=0\r\n[{000214A0-0000-0000-C000-000000000046}]\r\nProp3=19,11\r\n`;
+      const blob = new Blob([urlContent], { type: 'application/internet-shortcut;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'ATLAS 1337 Agency.url';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+      setDownloaded(true);
+      setInstallMessage('Desktop shortcut with official logo downloaded! Drag to your Desktop or double-click to launch.');
+      setTimeout(() => setDownloaded(false), 4000);
+    } catch (err) {
+      console.error('Download error:', err);
+      setInstallMessage('Could not initiate file download. Please copy link or use browser menu.');
+    }
+  };
+
+  // Direct PWA install or Web Share sheet trigger
+  const handleShareOrInstall = async () => {
     if (deferredPrompt) {
       try {
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
         if (outcome === 'accepted') {
-          console.log('User accepted the install prompt');
+          setInstallMessage('App installed to your device successfully!');
         }
         setDeferredPrompt(null);
-        setShowShortcutModal(false);
+        return;
       } catch (err) {
         console.error('Error during prompt:', err);
       }
-    } else {
-      setInstallMessage("Tap browser share & select 'Add to Home Screen'");
-      setTimeout(() => setInstallMessage(null), 5000);
     }
+
+    if (typeof navigator.share === 'function') {
+      try {
+        await navigator.share({
+          title: 'ATLAS 1337 Agency',
+          text: 'Quick access to ATLAS 1337 Agency links & virtual card',
+          url: window.location.href,
+        });
+        return;
+      } catch {
+        // User dismissed share dialog
+      }
+    }
+
+    // Fallback: download the shortcut file directly
+    handleDownloadShortcutFile();
   };
 
   const handleCopyLink = async () => {
@@ -135,7 +183,6 @@ export default function App() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     } catch {
-      // Fallback
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     }
@@ -143,6 +190,11 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#08080c] text-white flex justify-center font-sans relative overflow-x-hidden">
+      {/* Modern Loader Screen with Logo */}
+      {showLoader && (
+        <SplashScreen onComplete={() => setShowLoader(false)} minDuration={1100} />
+      )}
+
       <CustomCursor />
       {/* Background gradients from Immersive UI theme */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
@@ -354,7 +406,7 @@ export default function App() {
             if (e.target === e.currentTarget) setShowShortcutModal(false);
           }}
         >
-          <div className="relative w-full max-w-[400px] bg-[#0d0d17] border border-white/20 rounded-3xl p-6 sm:p-7 shadow-2xl flex flex-col items-center text-center animate-slide-up overflow-hidden">
+          <div className="relative w-full max-w-[420px] bg-[#0d0d17] border border-white/20 rounded-3xl p-5 sm:p-6 shadow-2xl flex flex-col items-center text-center animate-slide-up overflow-hidden max-h-[90vh] overflow-y-auto">
             {/* Ambient decorative glows */}
             <div className="absolute -top-16 -left-16 w-44 h-44 bg-indigo-600/25 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute -bottom-16 -right-16 w-44 h-44 bg-fuchsia-600/25 rounded-full blur-3xl pointer-events-none" />
@@ -363,16 +415,16 @@ export default function App() {
             <button
               type="button"
               onClick={() => setShowShortcutModal(false)}
-              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-full bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-full bg-white/5 hover:bg-white/10 transition-colors cursor-pointer z-10"
               aria-label="Close"
             >
               <X className="w-5 h-5" />
             </button>
 
             {/* Glowing App Icon */}
-            <div className="relative mb-3 mt-1">
+            <div className="relative mb-2 mt-1">
               <div className="absolute -inset-2 bg-gradient-to-r from-indigo-500 to-fuchsia-500 rounded-2xl blur-md opacity-50 animate-pulse" />
-              <div className="relative w-16 h-16 rounded-2xl bg-[#12121e] border border-white/20 p-2.5 flex items-center justify-center shadow-xl shadow-fuchsia-500/20">
+              <div className="relative w-14 h-14 rounded-2xl bg-[#12121e] border border-white/20 p-2 flex items-center justify-center shadow-xl shadow-fuchsia-500/20">
                 <img
                   src="/images/favicon.png"
                   alt="ATLAS 1337 Agency"
@@ -381,61 +433,169 @@ export default function App() {
               </div>
             </div>
 
-            {/* Modal Title & Info */}
+            {/* Modal Title & Subtitle */}
             <h3 className="text-xl font-bold text-white tracking-tight">Download Shortcut</h3>
-            <p className="text-xs text-slate-300 mt-1.5 max-w-[310px] leading-relaxed">
-              Add ATLAS 1337 Agency to your device&apos;s home screen or desktop for fast 1-tap access.
+            <p className="text-xs text-slate-300 mt-1 max-w-[320px] leading-relaxed">
+              Get instant 1-tap or 1-click access to ATLAS 1337 Agency on your home screen or desktop.
             </p>
 
-            {/* Direct PWA Install Button (if browser supports beforeinstallprompt) */}
-            {deferredPrompt && (
-              <button
-                type="button"
-                onClick={handleInstall}
-                className="w-full mt-5 py-3 px-5 bg-gradient-to-r from-indigo-500 via-purple-500 to-fuchsia-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-fuchsia-500/25 hover:shadow-fuchsia-500/40 active:scale-[0.98] transition flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <Download className="w-4 h-4" />
-                <span>Install Shortcut Now</span>
-              </button>
-            )}
-
-            {/* Step-by-step Instructions for Mobile / Tablet / Desktop */}
-            <div className="w-full mt-4 bg-white/[0.05] border border-white/10 rounded-2xl p-4 text-left space-y-3">
-              <div className="flex items-center gap-2 text-slate-200 font-semibold text-[11px] uppercase tracking-wider">
-                <Smartphone className="w-3.5 h-3.5 text-fuchsia-400" />
-                <span>Quick Setup Guide</span>
-              </div>
-
-              <div className="space-y-2 text-slate-300 text-xs">
-                <div className="flex items-start gap-2.5">
-                  <span className="w-4 h-4 rounded-full bg-indigo-500/20 text-indigo-400 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
-                    1
-                  </span>
-                  <div className="leading-snug">
-                    On phone/tablet, tap browser <strong className="text-white">Share</strong> <Share className="inline w-3.5 h-3.5 text-blue-400 mx-0.5 -mt-0.5" /> or menu <strong className="text-white">⋮</strong>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-2.5">
-                  <span className="w-4 h-4 rounded-full bg-fuchsia-500/20 text-fuchsia-400 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
-                    2
-                  </span>
-                  <div className="leading-snug">
-                    Select <strong className="text-white">Add to Home Screen</strong> <PlusSquare className="inline w-3.5 h-3.5 text-fuchsia-400 mx-0.5 -mt-0.5" /> or <strong className="text-white">Install App</strong>
-                  </div>
-                </div>
-              </div>
+            {/* Official Logo Indicator for Shortcut */}
+            <div className="inline-flex items-center gap-2 mt-2 px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-[11px] text-slate-300">
+              <img src="/images/favicon.png" alt="ATLAS 1337" className="w-3.5 h-3.5 object-contain" />
+              <span>Shortcut uses official logo: <code className="text-fuchsia-300 font-mono text-[10px]">favicon.png</code></span>
             </div>
 
-            {/* Status Message if any */}
-            {installMessage && (
-              <p className="mt-3 text-xs text-amber-300 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-lg">
-                {installMessage}
-              </p>
+            {/* Device Switcher Tabs */}
+            <div className="flex items-center gap-1.5 p-1 bg-white/[0.06] border border-white/10 rounded-2xl w-full mt-4 mb-3">
+              <button
+                type="button"
+                onClick={() => setActiveTab('mobile')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === 'mobile'
+                    ? 'bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white shadow-md shadow-fuchsia-500/20'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Smartphone className="w-3.5 h-3.5" />
+                <span>Phone / Tablet</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('desktop')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === 'desktop'
+                    ? 'bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white shadow-md shadow-indigo-500/20'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Laptop className="w-3.5 h-3.5" />
+                <span>Laptop / PC</span>
+              </button>
+            </div>
+
+            {/* Laptop / PC Tab Content */}
+            {activeTab === 'desktop' && (
+              <div className="w-full space-y-3">
+                {/* Direct Download Button */}
+                <button
+                  type="button"
+                  onClick={handleDownloadShortcutFile}
+                  className="w-full py-3.5 px-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-fuchsia-500 hover:from-indigo-600 hover:to-fuchsia-600 text-white font-bold text-sm rounded-2xl shadow-lg shadow-fuchsia-500/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2.5 cursor-pointer"
+                >
+                  {downloaded ? <Check className="w-4 h-4 text-white" /> : <Download className="w-4 h-4" />}
+                  <span>{downloaded ? 'Shortcut File Downloaded!' : 'Download Desktop Shortcut (.url)'}</span>
+                </button>
+
+                {/* PC Instructions */}
+                <div className="w-full bg-white/[0.04] border border-white/10 rounded-2xl p-3.5 text-left space-y-2.5">
+                  <div className="flex items-center gap-2 text-slate-200 font-semibold text-[11px] uppercase tracking-wider">
+                    <Monitor className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>How to use on Laptop / PC</span>
+                  </div>
+
+                  <div className="space-y-2 text-slate-300 text-xs">
+                    <div className="flex items-start gap-2.5">
+                      <span className="w-4 h-4 rounded-full bg-indigo-500/20 text-indigo-400 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                        1
+                      </span>
+                      <div className="leading-snug">
+                        Click <strong className="text-white">Download Desktop Shortcut</strong> above to save the <code className="text-fuchsia-300 font-mono text-[11px]">.url</code> file.
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2.5">
+                      <span className="w-4 h-4 rounded-full bg-fuchsia-500/20 text-fuchsia-400 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                        2
+                      </span>
+                      <div className="leading-snug">
+                        Drag the downloaded file to your <strong className="text-white">Desktop</strong> or Taskbar to launch with 1 click anytime!
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2.5">
+                      <span className="w-4 h-4 rounded-full bg-purple-500/20 text-purple-300 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                        3
+                      </span>
+                      <div className="leading-snug">
+                        <em>Optional:</em> In Chrome / Edge, click the <strong className="text-white">⊕ (Install App)</strong> icon directly in your URL address bar.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
 
-            {/* Copy Link Utility Button */}
-            <div className="w-full flex items-center gap-2 mt-4">
+            {/* Mobile / Tablet Tab Content */}
+            {activeTab === 'mobile' && (
+              <div className="w-full space-y-3">
+                {/* Primary Mobile Action Button */}
+                <button
+                  type="button"
+                  onClick={handleShareOrInstall}
+                  className="w-full py-3.5 px-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-fuchsia-500 hover:from-indigo-600 hover:to-fuchsia-600 text-white font-bold text-sm rounded-2xl shadow-lg shadow-fuchsia-500/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2.5 cursor-pointer"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>{deferredPrompt ? 'Install App Shortcut' : 'Add Shortcut (Open Share)'}</span>
+                </button>
+
+                {/* Secondary: Download file directly */}
+                <button
+                  type="button"
+                  onClick={handleDownloadShortcutFile}
+                  className="w-full py-2.5 px-3 bg-white/[0.05] hover:bg-white/[0.08] border border-white/10 text-slate-300 hover:text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
+                >
+                  {downloaded ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Download className="w-3.5 h-3.5 text-indigo-400" />}
+                  <span>{downloaded ? 'Downloaded Shortcut File!' : 'Or Download .url Shortcut File'}</span>
+                </button>
+
+                {/* Step-by-step Instructions for Mobile */}
+                <div className="w-full bg-white/[0.04] border border-white/10 rounded-2xl p-3.5 text-left space-y-2.5">
+                  <div className="flex items-center gap-2 text-slate-200 font-semibold text-[11px] uppercase tracking-wider">
+                    <Smartphone className="w-3.5 h-3.5 text-fuchsia-400" />
+                    <span>How to Add to Home Screen</span>
+                  </div>
+
+                  <div className="space-y-2 text-slate-300 text-xs">
+                    <div className="flex items-start gap-2.5">
+                      <span className="w-4 h-4 rounded-full bg-indigo-500/20 text-indigo-400 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                        1
+                      </span>
+                      <div className="leading-snug">
+                        Tap browser <strong className="text-white">Share</strong> <Share className="inline w-3.5 h-3.5 text-blue-400 mx-0.5 -mt-0.5" /> (iOS Safari) or menu <strong className="text-white">⋮</strong> (Android Chrome)
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2.5">
+                      <span className="w-4 h-4 rounded-full bg-fuchsia-500/20 text-fuchsia-400 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                        2
+                      </span>
+                      <div className="leading-snug">
+                        Select <strong className="text-white">Add to Home Screen</strong> <PlusSquare className="inline w-3.5 h-3.5 text-fuchsia-400 mx-0.5 -mt-0.5" /> or <strong className="text-white">Install App</strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* "How It Works" Clear Explanation Box */}
+            <div className="w-full mt-3 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl p-3 text-left flex items-start gap-2.5">
+              <Info className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+              <p className="text-[11px] text-slate-300 leading-relaxed">
+                <strong className="text-white font-semibold">How it works:</strong> A web shortcut gives you fast 1-tap/1-click access without needing an app store. On mobile it places an icon on your phone home screen; on PC it downloads a shortcut file you can place on your desktop.
+              </p>
+            </div>
+
+            {/* Notification / Feedback Message if any */}
+            {installMessage && (
+              <div className="w-full mt-3 text-xs text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-3.5 py-2 rounded-xl flex items-center gap-2 text-left">
+                <Check className="w-4 h-4 shrink-0 text-emerald-400" />
+                <span>{installMessage}</span>
+              </div>
+            )}
+
+            {/* Bottom Controls: Copy Link & Got It */}
+            <div className="w-full flex items-center gap-2 mt-4 pt-1">
               <button
                 type="button"
                 onClick={handleCopyLink}
@@ -457,7 +617,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setShowShortcutModal(false)}
-                className="py-2.5 px-5 bg-white text-black hover:bg-slate-200 rounded-xl text-xs font-bold transition-all active:scale-[0.98] cursor-pointer shadow-md"
+                className="py-2.5 px-6 bg-white text-black hover:bg-slate-200 rounded-xl text-xs font-bold transition-all active:scale-[0.98] cursor-pointer shadow-md"
               >
                 Got It
               </button>
