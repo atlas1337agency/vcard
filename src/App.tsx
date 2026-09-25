@@ -34,7 +34,7 @@ const SPACE_LINKS = [
     id: 'skilliq-school',
     title: 'Skilliq - Virtual School',
     icon: <GraduationCap className="w-5 h-5" />,
-    href: 'https://skilliq.vercel.app',
+    href: 'https://skilliq1337school.vercel.app',
   },
 ];
 
